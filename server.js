@@ -11,7 +11,11 @@ const PORT = process.env.PORT || 5001;
 // Enable CORS
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://localhost:3000"],
+    origin: [
+      "http://localhost:3001",
+      "http://localhost:3000",
+      "https://admin-frontend-d8yw.vercel.app",
+    ],
     credentials: true,
   }),
 );
