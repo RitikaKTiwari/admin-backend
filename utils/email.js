@@ -1,14 +1,15 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 // Create transporter
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  host: process.env.EMAIL_HOST || "smtp.gmail.com",
   port: process.env.EMAIL_PORT || 465,
   secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  family: 4, // force IPv4, avoids Render's IPv6 unreachable issue
 });
 
 // Send order status email
@@ -16,29 +17,31 @@ exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
   try {
     const statusMap = {
       pending: {
-        subject: 'Your Order is Pending',
-        message: 'Your order has been received and is waiting for confirmation.',
-        color: '#f59e0b',
+        subject: "Your Order is Pending",
+        message:
+          "Your order has been received and is waiting for confirmation.",
+        color: "#f59e0b",
       },
       confirmed: {
-        subject: 'Your Order is Confirmed!',
-        message: 'Your order has been confirmed and is being processed.',
-        color: '#3b82f6',
+        subject: "Your Order is Confirmed!",
+        message: "Your order has been confirmed and is being processed.",
+        color: "#3b82f6",
       },
       shipped: {
-        subject: 'Your Order has been Shipped!',
-        message: 'Your order has been shipped and is on its way to you.',
-        color: '#8b5cf6',
+        subject: "Your Order has been Shipped!",
+        message: "Your order has been shipped and is on its way to you.",
+        color: "#8b5cf6",
       },
       delivered: {
-        subject: 'Your Order has been Delivered!',
-        message: 'Your order has been successfully delivered.',
-        color: '#22c55e',
+        subject: "Your Order has been Delivered!",
+        message: "Your order has been successfully delivered.",
+        color: "#22c55e",
       },
       cancelled: {
-        subject: 'Your Order has been Cancelled',
-        message: 'Your order has been cancelled. Please contact support for any questions.',
-        color: '#ef4444',
+        subject: "Your Order has been Cancelled",
+        message:
+          "Your order has been cancelled. Please contact support for any questions.",
+        color: "#ef4444",
       },
     };
 
@@ -96,7 +99,7 @@ exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
                 </tr>
                 <tr>
                   <td><strong>Payment Method:</strong></td>
-                  <td>${order.paymentMethod || 'COD'}</td>
+                  <td>${order.paymentMethod || "COD"}</td>
                 </tr>
                 <tr>
                   <td><strong>Shipping Address:</strong></td>
@@ -113,7 +116,7 @@ exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
           </div>
           <div class="footer">
             <p>This is an automated email. Please do not reply to this message.</p>
-            <p>&copy; ${new Date().getFullYear()} ${process.env.STORE_NAME || 'ShopEasy'}. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} ${process.env.STORE_NAME || "ShopEasy"}. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -121,7 +124,9 @@ exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
     `;
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"${process.env.STORE_NAME || 'ShopEasy'}" <${process.env.EMAIL_USER}>`,
+      from:
+        process.env.EMAIL_FROM ||
+        `"${process.env.STORE_NAME || "ShopEasy"}" <${process.env.EMAIL_USER}>`,
       to: customerEmail,
       subject: `${statusInfo.subject} - Order #${order.orderId || order._id}`,
       html,
@@ -129,7 +134,7 @@ exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
 
     return true;
   } catch (error) {
-    console.error('Email send error:', error);
+    console.error("Email send error:", error);
     return false;
   }
 };
