@@ -1,16 +1,10 @@
-const nodemailer = require("nodemailer");
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.gmail.com",
-  port: process.env.EMAIL_PORT || 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  family: 4, // force IPv4, avoids Render's IPv6 unreachable issue
-});
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+const apiKey = defaultClient.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // Send order status email
 exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
@@ -123,18 +117,19 @@ exports.sendOrderStatusEmail = async (order, customerEmail, customerName) => {
       </html>
     `;
 
-    await transporter.sendMail({
-      from:
-        process.env.EMAIL_FROM ||
-        `"${process.env.STORE_NAME || "ShopEasy"}" <${process.env.EMAIL_USER}>`,
-      to: customerEmail,
+    await apiInstance.sendTransacEmail({
+      sender: {
+        email: process.env.EMAIL_USER,
+        name: process.env.STORE_NAME || "ShopEasy",
+      },
+      to: [{ email: customerEmail, name: customerName }],
       subject: `${statusInfo.subject} - Order #${order.orderId || order._id}`,
-      html,
+      htmlContent: html,
     });
 
     return true;
   } catch (error) {
-    console.error("Email send error:", error);
+    console.error("Email send error:", error?.response?.body || error);
     return false;
   }
 };
